@@ -1,0 +1,7 @@
+@tailwind base;@tailwind components;@tailwind utilities;
+html{scroll-behavior:smooth}body{@apply bg-paper text-ink font-sans antialiased}h1,h2,h3{@apply font-head}
+.glass{@apply bg-white/60 backdrop-blur-md border border-white/70 shadow-[0_8px_30px_rgba(37,41,37,.06)]}
+.btn{@apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition hover:-translate-y-0.5}
+.btn-p{@apply bg-sage text-white hover:bg-ink}.btn-o{@apply border border-sage text-ink hover:bg-sage2/40}
+.inp{@apply w-full rounded-xl border border-sage2 bg-white px-3 py-2 text-sm outline-none focus:border-sage}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

@@ -1,0 +1,1 @@
+module.exports={content:['./index.html','./src/**/*.{ts,tsx}'],theme:{extend:{colors:{paper:'#F8F7F2',sage:'#78947A',sage2:'#B4C4A8',ink:'#252925',mute:'#777D76'},fontFamily:{head:['"Space Grotesk"','sans-serif'],sans:['Inter','sans-serif']}}}}
