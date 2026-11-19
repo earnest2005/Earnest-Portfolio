@@ -1,0 +1,20 @@
+# Cloudflare Pages Headers
+
+# Security & Defaults
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Hashed assets: cache for 1 year immutable
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Favicon and media
+/*.webp
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
