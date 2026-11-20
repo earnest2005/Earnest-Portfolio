@@ -45,6 +45,25 @@ function saveCache(data: PortfolioData) {
   }
 }
 
+export function getCachedPhotoUrl(): string | null {
+  const cached = getStoredCache()
+  return cached?.profile?.photo_url || null
+}
+
+// Early image preload in browser memory to ensure zero-delay intro on repeat visits
+if (typeof window !== 'undefined') {
+  try {
+    const cachedPhoto = getCachedPhotoUrl()
+    if (cachedPhoto) {
+      const preImg = new Image()
+      preImg.fetchPriority = 'high'
+      preImg.src = cachedPhoto
+    }
+  } catch {
+    // ignore
+  }
+}
+
 // Fetch all public collections in a single parallel batch
 export async function fetchAllPortfolioData(): Promise<PortfolioData> {
   const [profileRes, skillsRes, projectsRes, experienceRes, educationRes, certsRes, postsRes] =
