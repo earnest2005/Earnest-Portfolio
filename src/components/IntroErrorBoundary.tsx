@@ -36,3 +36,4 @@ export default class IntroErrorBoundary extends Component<Props, State> {
     return this.props.children
   }
 }
+
