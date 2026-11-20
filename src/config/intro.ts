@@ -6,12 +6,12 @@
 export const INTRO_CONFIG = {
   // Timing values in seconds
   timings: {
-    stage0Blackout: 0.25,     // Stage 0: pure dark canvas
-    stage1FadeIn: 0.85,       // Stage 1: portrait fades in & scales at screen center
-    stage2Travel: 1.05,       // Stage 2: smooth glide to target hero slot
-    stage3HeroStagger: 0.09,  // Stage 3: stagger delay between hero elements
-    maxImageWait: 1.5,        // Max wait for cold image decode before skipping intro
-    totalDuration: 2.8,       // Overall safety cap
+    stage0Blackout: 0.2,     // Stage 0: brief initial dark setup
+    stage1FadeIn: 0.8,       // Stage 1: portrait fades in & scales at screen center
+    stage2Travel: 1.0,       // Stage 2: smooth glide to target hero slot
+    stage3HeroStagger: 0.09, // Stage 3: stagger delay between hero elements
+    maxImageWait: 1.2,       // Max wait for image decode before skipping intro
+    hardTimeout: 3.5,        // Absolute safety timeout: force-complete intro
   },
 
   // Refined easings

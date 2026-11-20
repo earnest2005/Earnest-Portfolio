@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion, AnimatePresence } from 'framer-motion'
 import {
@@ -30,6 +30,7 @@ import {
 import { usePortfolioData, getCachedPhotoUrl, type Row } from '../lib/data'
 import { supabase } from '../lib/supabase'
 import CinematicIntro from '../components/CinematicIntro'
+import IntroErrorBoundary from '../components/IntroErrorBoundary'
 
 const NAV_ITEMS = [
   { id: 'about', label: 'About' },
@@ -196,12 +197,7 @@ function Hero({
     >
       <div className="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-8">
         {/* Left Column: Hero Content */}
-        <motion.div
-          initial={prefersReduced || introFinished ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: introFinished ? 0 : 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-          className="lg:col-span-7"
-        >
+        <div className="lg:col-span-7">
           {/* Greeting Badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-sage/30 bg-sage/10 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-sage">
             <span className="flex h-2 w-2 rounded-full bg-sage animate-ping" />
@@ -286,19 +282,14 @@ function Hero({
               )}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right Column: Hero Portrait Composition with Glowing Gradient Ring & Soft Edge Dissolve */}
         <div
           ref={heroPortraitRef}
           className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] aspect-square lg:col-span-5"
         >
-          <motion.div
-            initial={prefersReduced || introFinished ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: introFinished ? 0 : 1.05, ease: 'easeOut' }}
-            className="relative flex items-center justify-center aspect-square w-full h-full"
-          >
+          <div className="relative flex items-center justify-center aspect-square w-full h-full">
             {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
             <div
               className="absolute h-72 w-72 sm:h-80 sm:w-80 rounded-full opacity-40 blur-3xl pointer-events-none"
@@ -352,25 +343,19 @@ function Hero({
                 )}
               </div>
 
-              {/* Non-colliding Floating Skill Badges on Ring Perimeter with staggered pop-in */}
+              {/* Non-colliding Floating Skill Badges on Ring Perimeter with ambient float */}
               {floatingTags.map((tag, idx) => {
                 const TagIcon = tag.icon
                 return (
                   <motion.div
                     key={tag.label}
-                    initial={prefersReduced ? { opacity: 1 } : { opacity: 0, scale: 0.7 }}
-                    animate={
-                      introFinished || introStage >= 3
-                        ? {
-                            opacity: 1,
-                            scale: 1,
-                            y: prefersReduced ? 0 : [0, -5, 0]
-                          }
-                        : { opacity: 0, scale: 0.7 }
-                    }
+                    initial={{ opacity: 1, scale: 1 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      y: prefersReduced ? 0 : [0, -5, 0]
+                    }}
                     transition={{
-                      opacity: { duration: 0.35, delay: 0.08 * idx },
-                      scale: { duration: 0.35, delay: 0.08 * idx },
                       y: {
                         duration: 4.5,
                         repeat: Infinity,
@@ -386,7 +371,7 @@ function Hero({
                 )
               })}
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -479,28 +464,31 @@ export default function Home() {
 
   const effectivePhotoUrl = p.photo_url || getCachedPhotoUrl() || undefined
 
+  const handleStageChange = useCallback((st: number) => {
+    setIntroStage(st)
+  }, [])
+
+  const handleIntroComplete = useCallback(() => {
+    setIntroFinished(true)
+    setIntroStage(3)
+  }, [])
+
   return (
     <div className="relative min-h-screen bg-paper text-ink selection:bg-sage/20 selection:text-ink">
       {/* Cinematic Opening Sequence */}
       {!introFinished && (
-        <CinematicIntro
-          photoUrl={effectivePhotoUrl}
-          targetRef={heroPortraitRef}
-          onStageChange={(st) => setIntroStage(st)}
-          onComplete={() => {
-            setIntroFinished(true)
-            setIntroStage(3)
-          }}
-        />
+        <IntroErrorBoundary onError={handleIntroComplete}>
+          <CinematicIntro
+            photoUrl={effectivePhotoUrl}
+            targetRef={heroPortraitRef}
+            onStageChange={handleStageChange}
+            onComplete={handleIntroComplete}
+          />
+        </IntroErrorBoundary>
       )}
 
       {/* Sticky Header Navigation */}
-      <motion.header
-        initial={introFinished ? { y: 0, opacity: 1 } : { y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: introFinished ? 0 : 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-        className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all"
-      >
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
           {/* Logo */}
           <a
@@ -598,7 +586,7 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.header>
+      </header>
 
       {/* Main Content */}
       <main>

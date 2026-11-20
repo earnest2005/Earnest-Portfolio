@@ -26,22 +26,47 @@ export default function CinematicIntro({
   const [isDone, setIsDone] = useState(false)
   const completedRef = useRef(false)
 
+  // Keep references to latest callbacks and refs without triggering effect restarts
+  const callbacksRef = useRef({ onComplete, onStageChange, targetRef })
+  useEffect(() => {
+    callbacksRef.current = { onComplete, onStageChange, targetRef }
+  })
+
   // Complete and remove intro sequence cleanly
   const finish = useCallback(() => {
     if (completedRef.current) return
     completedRef.current = true
     setIsDone(true)
+
     try {
       sessionStorage.setItem(INTRO_CONFIG.storage.sessionKey, 'true')
     } catch {
       // ignore
     }
-    document.body.style.overflow = ''
-    onStageChange?.(3)
-    onComplete()
-  }, [onComplete, onStageChange])
 
-  // Skip guard: check session storage & prefers-reduced-motion immediately
+    try {
+      document.body.style.overflow = ''
+    } catch {
+      // ignore
+    }
+
+    callbacksRef.current.onStageChange?.(3)
+    callbacksRef.current.onComplete()
+  }, [])
+
+  // Absolute hard timeout: force completion after hardTimeout seconds no matter what
+  useEffect(() => {
+    const hardTimer = setTimeout(() => {
+      if (!completedRef.current) {
+        console.warn('[CinematicIntro] Hard safety timeout reached (3.5s). Forcing completion.')
+        finish()
+      }
+    }, INTRO_CONFIG.timings.hardTimeout * 1000)
+
+    return () => clearTimeout(hardTimer)
+  }, [finish])
+
+  // Skip immediately if reduced motion or already completed in this session
   useEffect(() => {
     if (prefersReduced) {
       finish()
@@ -57,14 +82,31 @@ export default function CinematicIntro({
     } catch {
       // ignore
     }
+  }, [finish, prefersReduced])
 
-    // Lock body scroll during cinematic intro
-    document.body.style.overflow = 'hidden'
-
-    // Add skip triggers (click, keydown, wheel, touch)
-    const handleSkip = () => {
+  // Skip immediately if no photoUrl provided
+  useEffect(() => {
+    if (!photoUrl) {
       finish()
     }
+  }, [photoUrl, finish])
+
+  // Body scroll lock management: only lock while intro is actively playing
+  useEffect(() => {
+    if (!isDone && photoUrl && imageReady) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isDone, photoUrl, imageReady])
+
+  // Skip triggers (click, keydown, wheel, touch)
+  useEffect(() => {
+    const handleSkip = () => finish()
 
     window.addEventListener('click', handleSkip, { once: true })
     window.addEventListener('touchstart', handleSkip, { once: true, passive: true })
@@ -72,78 +114,72 @@ export default function CinematicIntro({
     window.addEventListener('wheel', handleSkip, { once: true, passive: true })
 
     return () => {
-      document.body.style.overflow = ''
       window.removeEventListener('click', handleSkip)
       window.removeEventListener('touchstart', handleSkip)
       window.removeEventListener('keydown', handleSkip)
       window.removeEventListener('wheel', handleSkip)
     }
-  }, [finish, prefersReduced])
+  }, [finish])
 
-  // Preload & decode image with fallback timeout
+  // Preload image with fallback timeout
   useEffect(() => {
-    if (completedRef.current) return
-
-    if (!photoUrl) {
-      // If no photo exists after 300ms, skip intro cleanly
-      const noPhotoTimer = setTimeout(() => {
-        if (!completedRef.current) finish()
-      }, 300)
-      return () => clearTimeout(noPhotoTimer)
-    }
+    if (completedRef.current || !photoUrl) return
 
     let isMounted = true
     const img = new Image()
     img.src = photoUrl
     img.fetchPriority = 'high'
 
-    // Max wait safety timer (1.5s)
+    // Max wait safety timer (1.2s): skip intro if image decode hangs
     const safetyTimer = setTimeout(() => {
-      if (isMounted && !imageReady) {
+      if (isMounted && !completedRef.current) {
         finish()
       }
     }, INTRO_CONFIG.timings.maxImageWait * 1000)
 
-    if (img.complete) {
-      setImageReady(true)
+    img.onload = () => {
+      if (isMounted && !completedRef.current) {
+        clearTimeout(safetyTimer)
+        setImageReady(true)
+      }
+    }
+
+    img.onerror = () => {
+      if (isMounted && !completedRef.current) {
+        clearTimeout(safetyTimer)
+        finish()
+      }
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
       clearTimeout(safetyTimer)
-    } else {
-      img
-        .decode()
-        .then(() => {
-          if (isMounted) {
-            setImageReady(true)
-            clearTimeout(safetyTimer)
-          }
-        })
-        .catch(() => {
-          if (isMounted) setImageReady(true)
-        })
+      setImageReady(true)
     }
 
     return () => {
       isMounted = false
       clearTimeout(safetyTimer)
     }
-  }, [photoUrl, finish, imageReady])
+  }, [photoUrl, finish])
 
-  // Sequence Timeline Controller
+  // Master Sequence Timeline Controller (depends ONLY on [imageReady, finish])
   useEffect(() => {
     if (!imageReady || completedRef.current) return
 
-    // Stage 0 -> Stage 1 (0.25s)
+    // Stage 0 -> Stage 1: Reveal centered portrait (0.2s)
     const t1 = setTimeout(() => {
       if (completedRef.current) return
       setStage(1)
-      onStageChange?.(1)
+      callbacksRef.current.onStageChange?.(1)
     }, INTRO_CONFIG.timings.stage0Blackout * 1000)
 
     // Stage 1 -> Stage 2: Measure target & trigger travel
     const t2 = setTimeout(() => {
       if (completedRef.current) return
 
-      if (targetRef.current) {
-        const targetRect = targetRef.current.getBoundingClientRect()
+      const targetEl = callbacksRef.current.targetRef.current
+      if (targetEl) {
+        const targetRect = targetEl.getBoundingClientRect()
         const isMobile = window.innerWidth < 640
         const initialSize = isMobile
           ? INTRO_CONFIG.sizes.mobileIntroSize
@@ -157,20 +193,20 @@ export default function CinematicIntro({
 
         const deltaX = targetCenterX - centerX
         const deltaY = targetCenterY - centerY
-        const scale = targetRect.width / initialSize
+        const scale = targetRect.width > 0 ? targetRect.width / initialSize : 1
 
         setTransformStyles({ x: deltaX, y: deltaY, scale })
       }
 
       setStage(2)
-      onStageChange?.(2)
+      callbacksRef.current.onStageChange?.(2)
     }, (INTRO_CONFIG.timings.stage0Blackout + INTRO_CONFIG.timings.stage1FadeIn) * 1000)
 
-    // Stage 2 -> Stage 3: Hero content reveal (overlaps travel)
+    // Stage 2 -> Stage 3: Overlay begins fadeout to reveal settled hero (overlap)
     const t3 = setTimeout(() => {
       if (completedRef.current) return
       setStage(3)
-      onStageChange?.(3)
+      callbacksRef.current.onStageChange?.(3)
     }, (INTRO_CONFIG.timings.stage0Blackout + INTRO_CONFIG.timings.stage1FadeIn + 0.2) * 1000)
 
     // End State: Handoff to real hero and remove overlay
@@ -184,10 +220,10 @@ export default function CinematicIntro({
       clearTimeout(t3)
       clearTimeout(tEnd)
     }
-  }, [imageReady, finish, targetRef, onStageChange])
+  }, [imageReady, finish])
 
-  // If completed, unmount from DOM
-  if (isDone) return null
+  // If completed or no photo, never render overlay
+  if (isDone || !photoUrl || !imageReady) return null
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
   const introSize = isMobile
@@ -195,108 +231,109 @@ export default function CinematicIntro({
     : INTRO_CONFIG.sizes.desktopIntroSize
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-paper transition-opacity duration-300 ${
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={stage === 3 ? { opacity: 0 } : { opacity: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-paper ${
         stage === 3 ? 'pointer-events-none' : 'pointer-events-auto'
       }`}
       aria-hidden="true"
     >
-      {/* Moving Portrait Element (only shown when photo is available and stage >= 1) */}
-      {photoUrl && (
-        <motion.div
-          animate={
+      {/* Moving Portrait Element */}
+      <motion.div
+        animate={
+          stage >= 2
+            ? {
+                x: transformStyles.x,
+                y: transformStyles.y,
+                scale: transformStyles.scale,
+                opacity: 1
+              }
+            : stage === 1
+            ? {
+                x: 0,
+                y: 0,
+                scale: 1,
+                opacity: 1
+              }
+            : {
+                x: 0,
+                y: 0,
+                scale: 0.94,
+                opacity: 0
+              }
+        }
+        transition={{
+          duration:
             stage >= 2
-              ? {
-                  x: transformStyles.x,
-                  y: transformStyles.y,
-                  scale: transformStyles.scale,
-                  opacity: 1
-                }
-              : stage === 1
-              ? {
-                  x: 0,
-                  y: 0,
-                  scale: 1,
-                  opacity: 1
-                }
-              : {
-                  x: 0,
-                  y: 0,
-                  scale: 0.92,
-                  opacity: 0
-                }
+              ? INTRO_CONFIG.timings.stage2Travel
+              : INTRO_CONFIG.timings.stage1FadeIn,
+          ease:
+            stage >= 2
+              ? INTRO_CONFIG.easings.travelBezier
+              : INTRO_CONFIG.easings.fadeBezier
+        }}
+        style={{
+          width: introSize,
+          height: introSize,
+          willChange: 'transform, opacity'
+        }}
+        className="relative flex items-center justify-center aspect-square"
+      >
+        {/* Soft Ambient Glow */}
+        <div
+          className="absolute -inset-8 rounded-full opacity-50 blur-3xl pointer-events-none transition-opacity duration-700"
+          style={{
+            background: INTRO_CONFIG.gradients.glow
+          }}
+        />
+
+        {/* The Animated Gradient Ring */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.88 }}
+          animate={
+            stage >= 1
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0.88 }
           }
           transition={{
-            duration:
-              stage >= 2
-                ? INTRO_CONFIG.timings.stage2Travel
-                : INTRO_CONFIG.timings.stage1FadeIn,
-            ease:
-              stage >= 2
-                ? INTRO_CONFIG.easings.travelBezier
-                : INTRO_CONFIG.easings.fadeBezier
+            duration: INTRO_CONFIG.timings.stage1FadeIn,
+            ease: INTRO_CONFIG.easings.fadeBezier
           }}
+          className="absolute inset-3 rounded-full p-[2px]"
           style={{
-            width: introSize,
-            height: introSize,
-            willChange: 'transform, opacity'
+            background: INTRO_CONFIG.gradients.ring,
+            boxShadow: '0 0 50px -10px rgba(111, 143, 255, 0.45)'
           }}
-          className="relative flex items-center justify-center aspect-square"
         >
-          {/* Soft Ambient Glow */}
-          <div
-            className="absolute -inset-8 rounded-full opacity-50 blur-3xl pointer-events-none transition-opacity duration-700"
-            style={{
-              background: INTRO_CONFIG.gradients.glow
-            }}
-          />
-
-          {/* The Animated Gradient Ring */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={
-              stage >= 1
-                ? { opacity: 1, scale: 1 }
-                : { opacity: 0, scale: 0.88 }
-            }
-            transition={{
-              duration: INTRO_CONFIG.timings.stage1FadeIn,
-              ease: INTRO_CONFIG.easings.fadeBezier
-            }}
-            className="absolute inset-3 rounded-full p-[2px]"
-            style={{
-              background: INTRO_CONFIG.gradients.ring,
-              boxShadow: '0 0 50px -10px rgba(111, 143, 255, 0.45)'
-            }}
-          >
-            <div className="h-full w-full rounded-full bg-paper" />
-          </motion.div>
-
-          {/* Blended Portrait Photo with Edge Dissolve */}
-          <div
-            className="relative z-10 flex h-[90%] w-[90%] items-center justify-center overflow-hidden"
-            style={{
-              WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
-              maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
-            }}
-          >
-            <img
-              src={photoUrl}
-              alt="Earnest Abraham Portrait"
-              fetchPriority="high"
-              decoding="async"
-              className="h-full w-full object-cover object-top"
-            />
-          </div>
+          <div className="h-full w-full rounded-full bg-paper" />
         </motion.div>
-      )}
+
+        {/* Blended Portrait Photo with Edge Dissolve */}
+        <div
+          className="relative z-10 flex h-[90%] w-[90%] items-center justify-center overflow-hidden"
+          style={{
+            WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
+            maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
+          }}
+        >
+          <img
+            src={photoUrl}
+            alt="Earnest Abraham Portrait"
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover object-top"
+          />
+        </div>
+      </motion.div>
 
       {/* Skip Hint pill at bottom right */}
       {stage >= 1 && (
-        <div className="absolute bottom-6 right-6 text-[11px] font-medium tracking-wider text-mute/50 uppercase select-none">
+        <div className="absolute bottom-6 right-6 text-[11px] font-medium tracking-wider text-mute/50 uppercase select-none pointer-events-none">
           Click or press any key to skip
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

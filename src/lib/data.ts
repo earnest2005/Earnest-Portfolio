@@ -64,27 +64,39 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Fetch all public collections in a single parallel batch
+// Fetch all public collections in a single parallel batch with safety timeout
 export async function fetchAllPortfolioData(): Promise<PortfolioData> {
-  const [profileRes, skillsRes, projectsRes, experienceRes, educationRes, certsRes, postsRes] =
-    await Promise.all([
-      supabase.from('profile').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('skills').select('*').eq('published', true).order('sort_order'),
-      supabase.from('projects').select('*').eq('published', true).order('sort_order'),
-      supabase.from('experience').select('*').eq('published', true).order('sort_order'),
-      supabase.from('education').select('*').eq('published', true).order('sort_order'),
-      supabase.from('certifications').select('*').eq('published', true).order('sort_order'),
-      supabase.from('posts').select('*').eq('published', true).order('sort_order')
-    ])
+  const fetchPromise = Promise.all([
+    supabase.from('profile').select('*').eq('id', 1).maybeSingle(),
+    supabase.from('skills').select('*').eq('published', true).order('sort_order'),
+    supabase.from('projects').select('*').eq('published', true).order('sort_order'),
+    supabase.from('experience').select('*').eq('published', true).order('sort_order'),
+    supabase.from('education').select('*').eq('published', true).order('sort_order'),
+    supabase.from('certifications').select('*').eq('published', true).order('sort_order'),
+    supabase.from('posts').select('*').eq('published', true).order('sort_order')
+  ])
 
-  return {
-    profile: profileRes.data ?? {},
-    skills: skillsRes.data ?? [],
-    projects: projectsRes.data ?? [],
-    experience: experienceRes.data ?? [],
-    education: educationRes.data ?? [],
-    certifications: certsRes.data ?? [],
-    posts: postsRes.data ?? []
+  // 4s timeout so a stalled connection never hangs page readiness
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Database fetch timed out')), 4000)
+  )
+
+  try {
+    const [profileRes, skillsRes, projectsRes, experienceRes, educationRes, certsRes, postsRes] =
+      await Promise.race([fetchPromise, timeoutPromise])
+
+    return {
+      profile: profileRes.data ?? {},
+      skills: skillsRes.data ?? [],
+      projects: projectsRes.data ?? [],
+      experience: experienceRes.data ?? [],
+      education: educationRes.data ?? [],
+      certifications: certsRes.data ?? [],
+      posts: postsRes.data ?? []
+    }
+  } catch (err) {
+    console.warn('[data] Could not fetch fresh data, falling back gracefully:', err)
+    return getStoredCache() ?? DEFAULT_DATA
   }
 }
 
