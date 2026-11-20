@@ -52,6 +52,9 @@ const SKILL_CATS = [
   'Tools & Technologies'
 ]
 
+// Global container layout for consistent viewport width and horizontal alignment across all sections
+const GLOBAL_CONTAINER = 'w-full max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-10 xl:px-12'
+
 // Section wrapper with smooth scroll-in animation
 function Section({
   id,
@@ -75,7 +78,7 @@ function Section({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
-      className="mx-auto max-w-6xl px-6 py-20 sm:py-24"
+      className={`${GLOBAL_CONTAINER} py-20 sm:py-24`}
     >
       <div className="mb-12">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-sage/30 bg-sage/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-sage">
@@ -193,7 +196,7 @@ function Hero({
         mouseX.set(e.clientX / window.innerWidth - 0.5)
         mouseY.set(e.clientY / window.innerHeight - 0.5)
       }}
-      className="relative mx-auto flex min-h-[90vh] max-w-6xl items-center px-6 pt-28 pb-16 lg:min-h-screen lg:pt-32"
+      className={`relative ${GLOBAL_CONTAINER} flex min-h-[90vh] items-center pt-28 pb-16 lg:min-h-screen lg:pt-32`}
     >
       <div className="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-8">
         {/* Left Column: Hero Content */}
@@ -216,7 +219,7 @@ function Hero({
           </p>
 
           {/* Intro Paragraph */}
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-mute sm:text-base">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-mute sm:text-base lg:max-w-2xl">
             {introText}
           </p>
 
@@ -494,7 +497,7 @@ export default function Home() {
 
       {/* Sticky Header Navigation */}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
+        <nav className={`${GLOBAL_CONTAINER} flex items-center justify-between py-3.5`}>
           {/* Logo */}
           <a
             href="#home"
@@ -1177,7 +1180,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-white/[0.06] bg-paper py-10 text-center text-xs text-mute">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
+        <div className={`${GLOBAL_CONTAINER} flex flex-col items-center justify-between gap-4 sm:flex-row`}>
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded bg-sage text-[10px] text-white font-bold">
               EA
