@@ -238,7 +238,7 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
             <span className="text-xs uppercase tracking-wider text-mute/70 font-semibold">
               Find me on
             </span>
-            <div className="h-px w-6 bg-sage2/40" />
+            <div className="h-px w-6 bg-white/[0.1]" />
             <div className="flex items-center gap-2.5">
               {p.github && (
                 <a
@@ -246,7 +246,7 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="GitHub Profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-sage2/40 bg-white/60 text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-surface text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
                 >
                   <Github size={17} />
                 </a>
@@ -257,7 +257,7 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="LinkedIn Profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-sage2/40 bg-white/60 text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-surface text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
                 >
                   <Linkedin size={17} />
                 </a>
@@ -266,7 +266,7 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
                 <a
                   href={`mailto:${p.email}`}
                   aria-label="Send Email"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-sage2/40 bg-white/60 text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.08] bg-surface text-ink transition-all hover:border-sage hover:bg-sage hover:text-white"
                 >
                   <Mail size={17} />
                 </a>
@@ -275,24 +275,45 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
           </div>
         </motion.div>
 
-        {/* Right Column: Hero Portrait Composition */}
+        {/* Right Column: Hero Portrait Composition with Glowing Gradient Ring & Soft Edge Dissolve */}
         <motion.div
           initial={prefersReduced ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.75, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-          className="relative mx-auto w-full max-w-[380px] sm:max-w-[420px] lg:col-span-5"
+          className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] lg:col-span-5"
         >
-          {/* Ambient Glow & Decorative Geometric Circles (Carefully layered behind) */}
-          <div className="absolute -inset-4 -z-10 rounded-full bg-sage2/30 blur-3xl" />
-          <div className="absolute -right-6 -bottom-6 -z-10 h-44 w-44 rounded-full border border-sage/20 bg-sage/5" />
-          <div className="absolute -left-4 -top-4 -z-10 h-32 w-32 rounded-full border border-sage2/30" />
+          {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
+          <div
+            className="absolute h-72 w-72 sm:h-80 sm:w-80 rounded-full opacity-40 blur-3xl pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)'
+            }}
+          />
 
-          {/* Portrait Container */}
+          {/* Thin CSS Gradient Ring (Violet -> Blue -> Light Blue) */}
           <motion.div
             style={prefersReduced ? {} : { x: tiltX, y: tiltY }}
-            className="relative aspect-square w-full rounded-3xl border border-sage2/30 bg-gradient-to-b from-white/90 to-white/40 p-3 shadow-xl backdrop-blur-sm"
+            className="relative flex items-center justify-center aspect-square w-full"
           >
-            <div className="relative flex h-full w-full items-end justify-center overflow-hidden rounded-2xl bg-gradient-to-t from-sage2/40 via-sage2/10 to-transparent">
+            {/* The Gradient Ring */}
+            <div
+              className="absolute inset-4 sm:inset-3 rounded-full p-[2px] transition-transform duration-700"
+              style={{
+                background: 'linear-gradient(135deg, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)',
+                boxShadow: '0 0 40px -10px rgba(111, 143, 255, 0.35)'
+              }}
+            >
+              <div className="h-full w-full rounded-full bg-paper" />
+            </div>
+
+            {/* Portrait Image dissolving seamlessly into page background with radial mask */}
+            <div
+              className="relative z-10 flex h-[340px] w-[340px] sm:h-[390px] sm:w-[390px] items-center justify-center overflow-hidden"
+              style={{
+                WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
+                maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
+              }}
+            >
               {p.photo_url ? (
                 <img
                   src={p.photo_url}
@@ -301,11 +322,11 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
                   decoding="async"
                   width="400"
                   height="400"
-                  className="max-h-full w-auto object-contain drop-shadow-[0_16px_24px_rgba(37,41,37,0.22)] transition-transform duration-500 hover:scale-[1.02]"
+                  className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
                 />
               ) : (
                 <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-xs text-mute">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/10 text-sage">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/15 text-sage">
                     <User size={32} />
                   </div>
                   <span className="mt-3 font-medium">Portrait Photo</span>
@@ -314,22 +335,22 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
               )}
             </div>
 
-            {/* Non-colliding Floating Skill Badges */}
+            {/* Non-colliding Floating Skill Badges on Ring Perimeter */}
             {floatingTags.map((tag) => {
               const TagIcon = tag.icon
               return (
                 <motion.div
                   key={tag.label}
-                  animate={prefersReduced ? {} : { y: [0, -6, 0] }}
+                  animate={prefersReduced ? {} : { y: [0, -5, 0] }}
                   transition={{
                     duration: 4.5,
                     repeat: Infinity,
                     ease: 'easeInOut',
                     delay: Math.random() * 2
                   }}
-                  className={`glass absolute z-10 hidden sm:flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink shadow-sm border border-white/90 ${tag.position}`}
+                  className={`glass absolute z-20 hidden sm:flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink shadow-lg border border-white/[0.12] ${tag.position}`}
                 >
-                  <TagIcon size={13} className="text-sage" />
+                  <TagIcon size={13} className="text-accent" />
                   <span>{tag.label}</span>
                 </motion.div>
               )
@@ -417,7 +438,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-paper text-ink selection:bg-sage/20 selection:text-ink">
       {/* Sticky Header Navigation */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-sage2/20 bg-paper/85 backdrop-blur-md transition-all">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
           {/* Logo */}
           <a
@@ -473,7 +494,7 @@ export default function Home() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Close Menu' : 'Open Menu'}
               aria-expanded={mobileMenuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-sage2/40 bg-white/70 text-ink md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-surface text-ink md:hidden"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -487,7 +508,7 @@ export default function Home() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-b border-sage2/20 bg-paper/95 px-6 py-6 backdrop-blur-xl md:hidden"
+              className="border-b border-white/[0.06] bg-paper/95 px-6 py-6 backdrop-blur-xl md:hidden"
             >
               <div className="flex flex-col gap-3">
                 {NAV_ITEMS.map((item) => (
@@ -495,7 +516,7 @@ export default function Home() {
                     key={item.id}
                     href={`#${item.id}`}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-mute hover:bg-sage2/20 hover:text-ink"
+                    className="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-mute hover:bg-white/[0.06] hover:text-ink"
                   >
                     <span>{item.label}</span>
                     <ChevronRight size={15} className="text-sage" />
@@ -1082,7 +1103,7 @@ export default function Home() {
                 )}
 
                 {contactStatus === 'error' && (
-                  <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-600">
+                  <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-400">
                     <AlertCircle size={16} />
                     <span>Could not send message. Please try again or email directly.</span>
                   </div>
@@ -1094,7 +1115,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-sage2/30 bg-paper py-10 text-center text-xs text-mute">
+      <footer className="border-t border-white/[0.06] bg-paper py-10 text-center text-xs text-mute">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
           <div className="flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded bg-sage text-[10px] text-white font-bold">
@@ -1117,7 +1138,7 @@ export default function Home() {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Scroll to top"
-          className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-sage2/40 bg-white/85 text-ink shadow-lg backdrop-blur-md transition-all hover:bg-sage hover:text-white"
+          className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-surface text-ink shadow-lg backdrop-blur-md transition-all hover:bg-sage hover:text-white"
         >
           <ArrowUp size={18} />
         </button>
