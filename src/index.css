@@ -1,7 +1,78 @@
-@tailwind base;@tailwind components;@tailwind utilities;
-html{scroll-behavior:smooth}body{@apply bg-paper text-ink font-sans antialiased}h1,h2,h3{@apply font-head}
-.glass{@apply bg-white/60 backdrop-blur-md border border-white/70 shadow-[0_8px_30px_rgba(37,41,37,.06)]}
-.btn{@apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition hover:-translate-y-0.5}
-.btn-p{@apply bg-sage text-white hover:bg-ink}.btn-o{@apply border border-sage text-ink hover:bg-sage2/40}
-.inp{@apply w-full rounded-xl border border-sage2 bg-white px-3 py-2 text-sm outline-none focus:border-sage}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased selection:bg-sage/20 selection:text-ink;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-head;
+}
+
+/* Glass styling — dark variant */
+.glass {
+  @apply bg-surface/80 backdrop-blur-md border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.25)];
+}
+
+.glass-card {
+  @apply bg-surface backdrop-blur-sm border border-white/[0.08] shadow-[0_2px_16px_rgba(0,0,0,0.2)] rounded-2xl transition-all duration-300;
+}
+
+.glass-card:hover {
+  @apply border-white/[0.14] shadow-[0_8px_30px_rgba(146,119,224,0.08)];
+}
+
+/* Buttons */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-paper;
+}
+
+.btn-p {
+  @apply bg-sage text-white shadow-sm hover:brightness-110 hover:shadow-md;
+}
+
+.btn-o {
+  @apply border border-white/[0.14] bg-surface/60 text-ink hover:border-sage/50 hover:bg-sage/10;
+}
+
+.btn-ghost {
+  @apply text-mute hover:text-ink hover:bg-white/[0.06];
+}
+
+/* Inputs */
+.inp {
+  @apply w-full rounded-xl border border-white/[0.1] bg-surface px-3.5 py-2.5 text-sm text-ink outline-none transition-all placeholder:text-mute/60 focus:border-sage focus:ring-2 focus:ring-sage/20;
+}
+
+/* Accessible focus outline */
+a:focus-visible, button:focus-visible {
+  @apply outline-none ring-2 ring-sage ring-offset-2 ring-offset-paper;
+}
+
+/* Skeleton shimmer for dark theme */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
