@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { usePortfolioData, type Row } from '../lib/data'
 import { supabase } from '../lib/supabase'
+import CinematicIntro from '../components/CinematicIntro'
 
 const NAV_ITEMS = [
   { id: 'about', label: 'About' },
@@ -137,7 +138,19 @@ function SkeletonCard({ count = 3, height = 'h-48' }: { count?: number; height?:
 }
 
 // Hero section with fluid sizing, non-colliding badges, and parallax
-function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
+function Hero({
+  p,
+  isReady,
+  heroPortraitRef,
+  introFinished,
+  introStage
+}: {
+  p: Row
+  isReady: boolean
+  heroPortraitRef: React.RefObject<HTMLDivElement>
+  introFinished: boolean
+  introStage: number
+}) {
   const prefersReduced = useReducedMotion()
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -184,8 +197,12 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
       <div className="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-8">
         {/* Left Column: Hero Content */}
         <motion.div
-          initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: 24 }}
+          animate={
+            introFinished || introStage >= 3
+              ? { opacity: 1, y: 0 }
+              : { opacity: 0, y: 24 }
+          }
           transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
           className="lg:col-span-7"
         >
@@ -276,87 +293,109 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
         </motion.div>
 
         {/* Right Column: Hero Portrait Composition with Glowing Gradient Ring & Soft Edge Dissolve */}
-        <motion.div
-          initial={prefersReduced ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.75, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-          className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] lg:col-span-5"
+        <div
+          ref={heroPortraitRef}
+          className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] aspect-square lg:col-span-5"
         >
-          {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
-          <div
-            className="absolute h-72 w-72 sm:h-80 sm:w-80 rounded-full opacity-40 blur-3xl pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)'
-            }}
-          />
-
-          {/* Thin CSS Gradient Ring (Violet -> Blue -> Light Blue) */}
           <motion.div
-            style={prefersReduced ? {} : { x: tiltX, y: tiltY }}
-            className="relative flex items-center justify-center aspect-square w-full"
+            initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
+            animate={
+              introFinished || introStage >= 2
+                ? { opacity: 1 }
+                : { opacity: 0 }
+            }
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="relative flex items-center justify-center aspect-square w-full h-full"
           >
-            {/* The Gradient Ring */}
+            {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
             <div
-              className="absolute inset-4 sm:inset-3 rounded-full p-[2px] transition-transform duration-700"
+              className="absolute h-72 w-72 sm:h-80 sm:w-80 rounded-full opacity-40 blur-3xl pointer-events-none"
               style={{
-                background: 'linear-gradient(135deg, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)',
-                boxShadow: '0 0 40px -10px rgba(111, 143, 255, 0.35)'
+                background: 'radial-gradient(circle, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)'
               }}
-            >
-              <div className="h-full w-full rounded-full bg-paper" />
-            </div>
+            />
 
-            {/* Portrait Image dissolving seamlessly into page background with radial mask */}
-            <div
-              className="relative z-10 flex h-[340px] w-[340px] sm:h-[390px] sm:w-[390px] items-center justify-center overflow-hidden"
-              style={{
-                WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
-                maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
-              }}
+            {/* Thin CSS Gradient Ring (Violet -> Blue -> Light Blue) */}
+            <motion.div
+              style={prefersReduced ? {} : { x: tiltX, y: tiltY }}
+              className="relative flex items-center justify-center aspect-square w-full"
             >
-              {p.photo_url ? (
-                <img
-                  src={p.photo_url}
-                  alt={p.name || 'Earnest Abraham Portrait'}
-                  fetchPriority="high"
-                  decoding="async"
-                  width="400"
-                  height="400"
-                  className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
-                />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-xs text-mute">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/15 text-sage">
-                    <User size={32} />
+              {/* The Gradient Ring */}
+              <div
+                className="absolute inset-4 sm:inset-3 rounded-full p-[2px] transition-transform duration-700"
+                style={{
+                  background: 'linear-gradient(135deg, #9277E0 0%, #6F8FFF 50%, #7CB4FF 100%)',
+                  boxShadow: '0 0 40px -10px rgba(111, 143, 255, 0.35)'
+                }}
+              >
+                <div className="h-full w-full rounded-full bg-paper" />
+              </div>
+
+              {/* Portrait Image dissolving seamlessly into page background with radial mask */}
+              <div
+                className="relative z-10 flex h-[340px] w-[340px] sm:h-[390px] sm:w-[390px] items-center justify-center overflow-hidden"
+                style={{
+                  WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
+                  maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
+                }}
+              >
+                {p.photo_url ? (
+                  <img
+                    src={p.photo_url}
+                    alt={p.name || 'Earnest Abraham Portrait'}
+                    fetchPriority="high"
+                    decoding="async"
+                    width="400"
+                    height="400"
+                    className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-xs text-mute">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sage/15 text-sage">
+                      <User size={32} />
+                    </div>
+                    <span className="mt-3 font-medium">Portrait Photo</span>
+                    <span className="mt-1 text-mute/80">Configure in Admin &rarr; Profile</span>
                   </div>
-                  <span className="mt-3 font-medium">Portrait Photo</span>
-                  <span className="mt-1 text-mute/80">Configure in Admin &rarr; Profile</span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Non-colliding Floating Skill Badges on Ring Perimeter */}
-            {floatingTags.map((tag) => {
-              const TagIcon = tag.icon
-              return (
-                <motion.div
-                  key={tag.label}
-                  animate={prefersReduced ? {} : { y: [0, -5, 0] }}
-                  transition={{
-                    duration: 4.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                    delay: Math.random() * 2
-                  }}
-                  className={`glass absolute z-20 hidden sm:flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink shadow-lg border border-white/[0.12] ${tag.position}`}
-                >
-                  <TagIcon size={13} className="text-accent" />
-                  <span>{tag.label}</span>
-                </motion.div>
-              )
-            })}
+              {/* Non-colliding Floating Skill Badges on Ring Perimeter with staggered pop-in */}
+              {floatingTags.map((tag, idx) => {
+                const TagIcon = tag.icon
+                return (
+                  <motion.div
+                    key={tag.label}
+                    initial={prefersReduced ? { opacity: 1 } : { opacity: 0, scale: 0.7 }}
+                    animate={
+                      introFinished || introStage >= 3
+                        ? {
+                            opacity: 1,
+                            scale: 1,
+                            y: prefersReduced ? 0 : [0, -5, 0]
+                          }
+                        : { opacity: 0, scale: 0.7 }
+                    }
+                    transition={{
+                      opacity: { duration: 0.35, delay: 0.08 * idx },
+                      scale: { duration: 0.35, delay: 0.08 * idx },
+                      y: {
+                        duration: 4.5,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: 0.3 + idx * 0.25
+                      }
+                    }}
+                    className={`glass absolute z-20 hidden sm:flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink shadow-lg border border-white/[0.12] ${tag.position}`}
+                  >
+                    <TagIcon size={13} className="text-accent" />
+                    <span>{tag.label}</span>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
@@ -365,6 +404,17 @@ function Hero({ p, isReady }: { p: Row; isReady: boolean }) {
 export default function Home() {
   const { profile: p, skills: sk, projects: pr, experience: ex, education: ed, certifications: ce, posts: po, isReady } =
     usePortfolioData()
+
+  const heroPortraitRef = useRef<HTMLDivElement>(null)
+  const [introFinished, setIntroFinished] = useState(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return !!sessionStorage.getItem('ea_intro_completed_v1')
+    } catch {
+      return false
+    }
+  })
+  const [introStage, setIntroStage] = useState<number>(introFinished ? 3 : 0)
 
   const [activeSection, setActiveSection] = useState('home')
   const [selectedCat, setSelectedCat] = useState('All')
@@ -437,8 +487,30 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-paper text-ink selection:bg-sage/20 selection:text-ink">
+      {/* Cinematic Opening Sequence */}
+      {!introFinished && (
+        <CinematicIntro
+          photoUrl={p.photo_url}
+          targetRef={heroPortraitRef}
+          onStageChange={(st) => setIntroStage(st)}
+          onComplete={() => {
+            setIntroFinished(true)
+            setIntroStage(3)
+          }}
+        />
+      )}
+
       {/* Sticky Header Navigation */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all">
+      <motion.header
+        initial={introFinished ? false : { y: -20, opacity: 0 }}
+        animate={
+          introFinished || introStage >= 3
+            ? { y: 0, opacity: 1 }
+            : { y: -20, opacity: 0 }
+        }
+        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all"
+      >
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
           {/* Logo */}
           <a
@@ -536,12 +608,18 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+      </motion.header>
 
       {/* Main Content */}
       <main>
         {/* Hero Section */}
-        <Hero p={p} isReady={isReady} />
+        <Hero
+          p={p}
+          isReady={isReady}
+          heroPortraitRef={heroPortraitRef}
+          introFinished={introFinished}
+          introStage={introStage}
+        />
 
         {/* About Section */}
         <Section id="about" badge="Overview" title="About Me" subtitle="My background, academic journey, and engineering mindset.">

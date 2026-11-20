@@ -119,16 +119,34 @@ export default function Form({
                 <div className="space-y-2">
                   {val && f.t === 'image' && (
                     <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-surfaceAlt p-2">
-                      <img
-                        src={val}
-                        alt="Preview"
-                        className="h-16 w-16 rounded-lg object-cover border border-white/[0.1]"
-                      />
+                      <div
+                        className="h-16 w-16 rounded-lg overflow-hidden border border-white/[0.1] bg-paper flex items-center justify-center shrink-0"
+                        style={
+                          f.k === 'photo_url'
+                            ? {
+                                WebkitMaskImage: 'radial-gradient(circle at center, black 60%, transparent 75%)',
+                                maskImage: 'radial-gradient(circle at center, black 60%, transparent 75%)'
+                              }
+                            : {}
+                        }
+                      >
+                        <img
+                          src={val}
+                          alt="Preview"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                       <div className="flex-1 overflow-hidden">
                         <span className="block truncate text-xs text-mute font-mono">{val}</span>
                         <span className="text-[11px] text-sage font-medium">Uploaded image</span>
                       </div>
                     </div>
+                  )}
+
+                  {f.k === 'photo_url' && (
+                    <p className="text-[11px] text-mute leading-relaxed">
+                      This photo is used in the opening animation and the hero section. A portrait with a dark or transparent background works best.
+                    </p>
                   )}
 
                   {val && f.t === 'file' && (
