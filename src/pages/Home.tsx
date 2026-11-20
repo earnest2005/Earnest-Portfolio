@@ -27,7 +27,7 @@ import {
   X,
   ArrowUp
 } from 'lucide-react'
-import { usePortfolioData, type Row } from '../lib/data'
+import { usePortfolioData, getCachedPhotoUrl, type Row } from '../lib/data'
 import { supabase } from '../lib/supabase'
 import CinematicIntro from '../components/CinematicIntro'
 
@@ -197,13 +197,9 @@ function Hero({
       <div className="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-8">
         {/* Left Column: Hero Content */}
         <motion.div
-          initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: 24 }}
-          animate={
-            introFinished || introStage >= 3
-              ? { opacity: 1, y: 0 }
-              : { opacity: 0, y: 24 }
-          }
-          transition={{ duration: 0.65, ease: [0.25, 0.1, 0.25, 1] }}
+          initial={prefersReduced || introFinished ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: introFinished ? 0 : 0.15, ease: [0.25, 0.1, 0.25, 1] }}
           className="lg:col-span-7"
         >
           {/* Greeting Badge */}
@@ -298,13 +294,9 @@ function Hero({
           className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] aspect-square lg:col-span-5"
         >
           <motion.div
-            initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
-            animate={
-              introFinished || introStage >= 2
-                ? { opacity: 1 }
-                : { opacity: 0 }
-            }
-            transition={{ duration: 0.35, ease: 'easeOut' }}
+            initial={prefersReduced || introFinished ? { opacity: 1 } : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: introFinished ? 0 : 1.05, ease: 'easeOut' }}
             className="relative flex items-center justify-center aspect-square w-full h-full"
           >
             {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
@@ -485,12 +477,14 @@ export default function Home() {
     }
   }
 
+  const effectivePhotoUrl = p.photo_url || getCachedPhotoUrl() || undefined
+
   return (
     <div className="relative min-h-screen bg-paper text-ink selection:bg-sage/20 selection:text-ink">
       {/* Cinematic Opening Sequence */}
       {!introFinished && (
         <CinematicIntro
-          photoUrl={p.photo_url}
+          photoUrl={effectivePhotoUrl}
           targetRef={heroPortraitRef}
           onStageChange={(st) => setIntroStage(st)}
           onComplete={() => {
@@ -502,13 +496,9 @@ export default function Home() {
 
       {/* Sticky Header Navigation */}
       <motion.header
-        initial={introFinished ? false : { y: -20, opacity: 0 }}
-        animate={
-          introFinished || introStage >= 3
-            ? { y: 0, opacity: 1 }
-            : { y: -20, opacity: 0 }
-        }
-        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        initial={introFinished ? { y: 0, opacity: 1 } : { y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: introFinished ? 0 : 0.25, ease: [0.25, 0.1, 0.25, 1] }}
         className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-paper/85 backdrop-blur-md transition-all"
       >
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
