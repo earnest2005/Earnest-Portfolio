@@ -63,9 +63,9 @@ export default function Form({
   }
 
   return (
-    <div className="space-y-5 rounded-2xl border border-sage2/40 bg-white p-6 shadow-sm sm:p-8">
+    <div className="space-y-5 rounded-2xl border border-white/[0.08] bg-surface p-6 shadow-sm sm:p-8">
       {err && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-medium text-red-600">
+        <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-medium text-red-400">
           <AlertCircle size={16} className="shrink-0" />
           <span>{err}</span>
         </div>
@@ -78,7 +78,7 @@ export default function Form({
 
           return (
             <div key={f.k} className="space-y-1.5">
-              <label htmlFor={f.k} className="block text-xs font-semibold uppercase tracking-wider text-ink/80">
+              <label htmlFor={f.k} className="block text-xs font-semibold uppercase tracking-wider text-textSec">
                 {f.l}
               </label>
 
@@ -118,11 +118,11 @@ export default function Form({
               ) : f.t === 'image' || f.t === 'file' ? (
                 <div className="space-y-2">
                   {val && f.t === 'image' && (
-                    <div className="flex items-center gap-3 rounded-xl border border-sage2/30 bg-paper/60 p-2">
+                    <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-surfaceAlt p-2">
                       <img
                         src={val}
                         alt="Preview"
-                        className="h-16 w-16 rounded-lg object-cover border border-sage2/40"
+                        className="h-16 w-16 rounded-lg object-cover border border-white/[0.1]"
                       />
                       <div className="flex-1 overflow-hidden">
                         <span className="block truncate text-xs text-mute font-mono">{val}</span>
@@ -132,7 +132,7 @@ export default function Form({
                   )}
 
                   {val && f.t === 'file' && (
-                    <div className="flex items-center gap-3 rounded-xl border border-sage2/30 bg-paper/60 p-2.5">
+                    <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-surfaceAlt p-2.5">
                       <FileText size={20} className="text-sage" />
                       <a
                         href={val}
@@ -146,7 +146,7 @@ export default function Form({
                   )}
 
                   <div className="flex items-center gap-2">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-sage2/60 bg-paper/40 px-4 py-2.5 text-xs font-medium text-ink transition-colors hover:border-sage hover:bg-sage/5">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/[0.14] bg-surfaceAlt px-4 py-2.5 text-xs font-medium text-ink transition-colors hover:border-sage hover:bg-sage/10">
                       {isUploading ? (
                         <Loader2 size={15} className="animate-spin text-sage" />
                       ) : (
@@ -183,7 +183,7 @@ export default function Form({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5 border-t border-sage2/30 pt-5">
+      <div className="flex flex-wrap items-center gap-2.5 border-t border-white/[0.08] pt-5">
         <button
           type="button"
           disabled={busy}

@@ -58,7 +58,7 @@ function Login() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-paper p-6">
-      <div className="w-full max-w-sm rounded-3xl border border-sage2/40 bg-white p-8 shadow-xl">
+      <div className="w-full max-w-sm rounded-3xl border border-white/[0.08] bg-surface p-8 shadow-xl">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sage text-white font-head font-bold text-lg">
             EA
@@ -69,7 +69,7 @@ function Login() {
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-mute mb-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-textSec mb-1">
               Email
             </label>
             <input
@@ -83,7 +83,7 @@ function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-mute mb-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-textSec mb-1">
               Password
             </label>
             <input
@@ -97,7 +97,7 @@ function Login() {
           </div>
 
           {err && (
-            <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600">
+            <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-400">
               <AlertCircle size={15} />
               <span>{err}</span>
             </div>
@@ -125,8 +125,8 @@ function Login() {
 function Toast({ m }: { m: string }) {
   if (!m) return null
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-xs font-medium text-white shadow-2xl animate-in fade-in slide-in-from-bottom-3 duration-200">
-      <CheckCircle2 size={16} className="text-sage" />
+    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-sage px-4 py-3 text-xs font-medium text-white shadow-2xl animate-in fade-in slide-in-from-bottom-3 duration-200">
+      <CheckCircle2 size={16} />
       <span>{m}</span>
     </div>
   )
@@ -181,9 +181,9 @@ function Dash() {
           return (
             <div
               key={key}
-              className="flex items-center gap-4 rounded-2xl border border-sage2/30 bg-white p-5 shadow-sm transition-all hover:border-sage/40"
+              className="flex items-center gap-4 rounded-2xl border border-white/[0.08] bg-surface p-5 shadow-sm transition-all hover:border-white/[0.14]"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sage/10 text-sage">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sage/15 text-sage">
                 <Icon size={22} />
               </div>
               <div>
@@ -198,8 +198,8 @@ function Dash() {
       </div>
 
       {/* Recent Messages Card */}
-      <div className="rounded-2xl border border-sage2/30 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-sage2/20">
+      <div className="rounded-2xl border border-white/[0.08] bg-surface p-6 shadow-sm">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-2 font-head text-base font-semibold text-ink">
             <Inbox size={18} className="text-sage" />
             <span>Recent Messages</span>
@@ -209,7 +209,7 @@ function Dash() {
           </Link>
         </div>
 
-        <div className="mt-4 divide-y divide-sage2/20">
+        <div className="mt-4 divide-y divide-white/[0.06]">
           {recent.length ? (
             recent.map((r, i) => (
               <div key={i} className="py-3 flex items-center justify-between gap-4">
@@ -376,7 +376,7 @@ function Manager({ table, say }: { table: string; say: (m: string) => void }) {
         </button>
       </div>
 
-      <div className="rounded-2xl border border-sage2/30 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-white/[0.08] bg-surface shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-xs text-mute">Loading items...</div>
         ) : !rows.length ? (
@@ -384,80 +384,80 @@ function Manager({ table, say }: { table: string; say: (m: string) => void }) {
             No entries found. Click "+ Add New {c.label}" to create one.
           </div>
         ) : (
-          <div className="divide-y divide-sage2/20">
+          <div className="divide-y divide-white/[0.06]">
             {rows.map((r, i) => (
               <div
                 key={r.id}
-                className="flex items-center gap-3 p-4 transition-colors hover:bg-paper/40"
+                className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]"
               >
-                {/* Reorder Buttons */}
-                <div className="flex flex-col gap-0.5">
-                  <button
-                    disabled={i === 0}
-                    onClick={() => move(i, -1)}
-                    aria-label="Move up"
-                    className="flex h-5 w-5 items-center justify-center rounded text-mute hover:bg-sage2/30 hover:text-ink disabled:opacity-20"
-                  >
-                    <ChevronUp size={14} />
-                  </button>
-                  <button
-                    disabled={i === rows.length - 1}
-                    onClick={() => move(i, 1)}
-                    aria-label="Move down"
-                    className="flex h-5 w-5 items-center justify-center rounded text-mute hover:bg-sage2/30 hover:text-ink disabled:opacity-20"
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                </div>
-
-                {/* Title & Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-semibold text-ink">
-                    {r[c.title] || 'Untitled'}
-                  </p>
-                  {r.category && <p className="text-xs text-mute">{r.category}</p>}
-                </div>
-
-                {/* Status Badge */}
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                    r.published
-                      ? 'bg-sage/10 text-sage border border-sage/30'
-                      : 'bg-amber-50 text-amber-600 border border-amber-200'
-                  }`}
+              {/* Reorder Buttons */}
+              <div className="flex flex-col gap-0.5">
+                <button
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                  aria-label="Move up"
+                  className="flex h-5 w-5 items-center justify-center rounded text-mute hover:bg-white/[0.08] hover:text-ink disabled:opacity-20"
                 >
-                  {r.published ? 'Published' : 'Draft'}
-                </span>
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  disabled={i === rows.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label="Move down"
+                  className="flex h-5 w-5 items-center justify-center rounded text-mute hover:bg-white/[0.08] hover:text-ink disabled:opacity-20"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
 
-                {/* Action Links */}
-                <div className="flex items-center gap-1">
-                  {c.slug && r.published && (
-                    <Link
-                      to={`/${table === 'posts' ? 'blog' : 'projects'}/${r.slug}`}
-                      target="_blank"
-                      title="Preview on site"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-sage/10 hover:text-sage"
-                    >
-                      <Eye size={15} />
-                    </Link>
-                  )}
+              {/* Title & Info */}
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-semibold text-ink">
+                  {r[c.title] || 'Untitled'}
+                </p>
+                {r.category && <p className="text-xs text-mute">{r.category}</p>}
+              </div>
 
-                  <button
-                    onClick={() => setEditing(r)}
-                    title="Edit record"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-sage2/30 hover:text-ink"
+              {/* Status Badge */}
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  r.published
+                    ? 'bg-sage/15 text-sage border border-sage/30'
+                    : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                }`}
+              >
+                {r.published ? 'Published' : 'Draft'}
+              </span>
+
+              {/* Action Links */}
+              <div className="flex items-center gap-1">
+                {c.slug && r.published && (
+                  <Link
+                    to={`/${table === 'posts' ? 'blog' : 'projects'}/${r.slug}`}
+                    target="_blank"
+                    title="Preview on site"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-sage/15 hover:text-sage"
                   >
-                    <Edit3 size={15} />
-                  </button>
+                    <Eye size={15} />
+                  </Link>
+                )}
 
-                  <button
-                    onClick={() => del(r)}
-                    title="Delete record"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setEditing(r)}
+                  title="Edit record"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-white/[0.08] hover:text-ink"
+                >
+                  <Edit3 size={15} />
+                </button>
+
+                <button
+                  onClick={() => del(r)}
+                  title="Delete record"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-mute hover:bg-red-500/10 hover:text-red-400"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
               </div>
             ))}
           </div>
@@ -503,22 +503,22 @@ function Messages({ say }: { say: (m: string) => void }) {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="rounded-2xl border border-sage2/30 bg-white p-8 text-center text-xs text-mute">
+          <div className="rounded-2xl border border-white/[0.08] bg-surface p-8 text-center text-xs text-mute">
             Loading messages...
           </div>
         ) : !rows.length ? (
-          <div className="rounded-2xl border border-sage2/30 bg-white p-12 text-center text-xs text-mute">
+          <div className="rounded-2xl border border-white/[0.08] bg-surface p-12 text-center text-xs text-mute">
             No contact messages received yet.
           </div>
         ) : (
           rows.map((r) => (
             <div
               key={r.id}
-              className="rounded-2xl border border-sage2/30 bg-white p-6 shadow-sm space-y-3"
+              className="rounded-2xl border border-white/[0.08] bg-surface p-6 shadow-sm space-y-3"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sage2/20 pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sage/10 text-sage text-xs font-bold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sage/15 text-sage text-xs font-bold">
                     {r.name?.charAt(0) || 'U'}
                   </div>
                   <div>
@@ -536,7 +536,7 @@ function Messages({ say }: { say: (m: string) => void }) {
                   </span>
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-mute hover:bg-red-50 hover:text-red-600"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-mute hover:bg-red-500/10 hover:text-red-400"
                     title="Delete message"
                   >
                     <Trash2 size={14} />
@@ -608,8 +608,8 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-paper p-6">
-        <div className="max-w-md rounded-3xl border border-sage2/40 bg-white p-8 text-center shadow-lg">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+        <div className="max-w-md rounded-3xl border border-white/[0.08] bg-surface p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-400">
             <ShieldCheck size={24} />
           </div>
           <h2 className="mt-4 font-head text-xl font-bold text-ink">Access Restricted</h2>
@@ -644,7 +644,7 @@ export default function Admin() {
         `flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium transition-all ${
           isActive
             ? 'bg-sage text-white shadow-sm font-semibold'
-            : 'text-mute hover:bg-sage2/20 hover:text-ink'
+            : 'text-mute hover:bg-white/[0.06] hover:text-ink'
         }`
       }
     >
@@ -654,9 +654,9 @@ export default function Admin() {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#FAFAF8]">
+    <div className="flex min-h-screen bg-paper">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-sage2/30 bg-white flex flex-col justify-between p-5">
+      <aside className="w-64 shrink-0 border-r border-white/[0.06] bg-surfaceAlt flex flex-col justify-between p-5">
         <div className="space-y-6">
           {/* Logo & Brand */}
           <div className="flex items-center gap-2.5 px-2">
@@ -703,12 +703,12 @@ export default function Admin() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="space-y-1 border-t border-sage2/20 pt-4">
+        <div className="space-y-1 border-t border-white/[0.06] pt-4">
           <a
             href="/"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-mute hover:bg-sage2/20 hover:text-ink transition-colors"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-mute hover:bg-white/[0.06] hover:text-ink transition-colors"
           >
             <ExternalLink size={15} />
             <span>View Public Site</span>
@@ -716,7 +716,7 @@ export default function Admin() {
 
           <button
             onClick={() => supabase.auth.signOut()}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <LogOut size={15} />
             <span>Sign Out</span>

@@ -20,14 +20,14 @@ export default function Detail({ table }: { table: string }) {
 
   if (record === undefined) {
     return (
-      <div className="mx-auto min-h-screen max-w-3xl px-6 py-16">
-        <div className="h-6 w-20 animate-pulse rounded bg-sage2/30 mb-8" />
-        <div className="h-10 w-3/4 animate-pulse rounded bg-sage2/40 mb-4" />
-        <div className="aspect-video w-full animate-pulse rounded-3xl bg-sage2/20 mb-8" />
+      <div className="mx-auto min-h-screen max-w-3xl px-6 py-16 bg-paper">
+        <div className="h-6 w-20 animate-pulse rounded bg-white/[0.06] mb-8" />
+        <div className="h-10 w-3/4 animate-pulse rounded bg-white/[0.08] mb-4" />
+        <div className="aspect-video w-full animate-pulse rounded-3xl bg-white/[0.05] mb-8" />
         <div className="space-y-3">
-          <div className="h-4 w-full animate-pulse rounded bg-sage2/20" />
-          <div className="h-4 w-5/6 animate-pulse rounded bg-sage2/20" />
-          <div className="h-4 w-2/3 animate-pulse rounded bg-sage2/20" />
+          <div className="h-4 w-full animate-pulse rounded bg-white/[0.05]" />
+          <div className="h-4 w-5/6 animate-pulse rounded bg-white/[0.05]" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-white/[0.05]" />
         </div>
       </div>
     )
@@ -35,7 +35,7 @@ export default function Detail({ table }: { table: string }) {
 
   if (!record) {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-6 text-center">
+      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-6 text-center bg-paper">
         <div className="glass-card p-8">
           <h2 className="font-head text-2xl font-bold text-ink">Item Not Found</h2>
           <p className="mt-2 text-sm text-mute">
@@ -82,7 +82,7 @@ export default function Detail({ table }: { table: string }) {
         )}
 
         {image && (
-          <div className="my-8 overflow-hidden rounded-3xl border border-sage2/30 shadow-lg bg-sage2/20">
+          <div className="my-8 overflow-hidden rounded-3xl border border-white/[0.08] shadow-lg bg-surface">
             <img
               src={image}
               alt={record.title}
@@ -97,9 +97,9 @@ export default function Detail({ table }: { table: string }) {
             {record.tech.split(',').map((t: string) => (
               <span
                 key={t}
-                className="rounded-lg border border-sage2/30 bg-white/70 px-3 py-1 text-xs font-mono text-sage font-medium"
+                className="rounded-lg border border-white/[0.1] bg-surface px-3 py-1 text-xs font-mono text-sage font-medium"
               >
-                {t.trim()}
+              {t.trim()}
               </span>
             ))}
           </div>
