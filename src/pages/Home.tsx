@@ -285,11 +285,15 @@ function Hero({
         </div>
 
         {/* Right Column: Hero Portrait Composition with Glowing Gradient Ring & Soft Edge Dissolve */}
-        <div
-          ref={heroPortraitRef}
-          className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] aspect-square lg:col-span-5"
-        >
-          <div className="relative flex items-center justify-center aspect-square w-full h-full">
+        <div className="relative mx-auto flex items-center justify-center w-full max-w-[380px] sm:max-w-[420px] aspect-square lg:col-span-5">
+          <div
+            ref={heroPortraitRef}
+            style={{
+              opacity: introFinished ? 1 : 0,
+              transition: 'opacity 0.2s ease-out'
+            }}
+            className="relative flex items-center justify-center aspect-square w-full h-full"
+          >
             {/* Echo of the glowing ring from portrait: Soft ambient blur glow */}
             <div
               className="absolute h-72 w-72 sm:h-80 sm:w-80 rounded-full opacity-40 blur-3xl pointer-events-none"
@@ -480,6 +484,7 @@ export default function Home() {
         <IntroErrorBoundary onError={handleIntroComplete}>
           <CinematicIntro
             photoUrl={effectivePhotoUrl}
+            isReady={isReady}
             targetRef={heroPortraitRef}
             onStageChange={handleStageChange}
             onComplete={handleIntroComplete}

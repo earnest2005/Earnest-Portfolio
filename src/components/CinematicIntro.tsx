@@ -4,6 +4,7 @@ import { INTRO_CONFIG } from '../config/intro'
 
 interface CinematicIntroProps {
   photoUrl?: string
+  isReady?: boolean
   targetRef: React.RefObject<HTMLElement>
   onComplete: () => void
   onStageChange?: (stage: number) => void
@@ -11,6 +12,7 @@ interface CinematicIntroProps {
 
 export default function CinematicIntro({
   photoUrl,
+  isReady = true,
   targetRef,
   onComplete,
   onStageChange
@@ -58,7 +60,6 @@ export default function CinematicIntro({
   useEffect(() => {
     const hardTimer = setTimeout(() => {
       if (!completedRef.current) {
-        console.warn('[CinematicIntro] Hard safety timeout reached (3.5s). Forcing completion.')
         finish()
       }
     }, INTRO_CONFIG.timings.hardTimeout * 1000)
@@ -84,16 +85,26 @@ export default function CinematicIntro({
     }
   }, [finish, prefersReduced])
 
-  // Skip immediately if no photoUrl provided
+  // If database is ready and there is no photo, skip intro cleanly
   useEffect(() => {
-    if (!photoUrl) {
+    if (isReady && !photoUrl) {
       finish()
     }
-  }, [photoUrl, finish])
+  }, [isReady, photoUrl, finish])
 
-  // Body scroll lock management: only lock while intro is actively playing
+  // Safety wait timer while database initializes: if no photo after 1.2s, skip intro
   useEffect(() => {
-    if (!isDone && photoUrl && imageReady) {
+    if (!isReady && !photoUrl) {
+      const waitTimer = setTimeout(() => {
+        if (!completedRef.current) finish()
+      }, 1200)
+      return () => clearTimeout(waitTimer)
+    }
+  }, [isReady, photoUrl, finish])
+
+  // Body scroll lock management: lock during center stage, unlock as soon as travel starts
+  useEffect(() => {
+    if (!isDone && photoUrl && imageReady && stage < 2) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -102,7 +113,7 @@ export default function CinematicIntro({
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isDone, photoUrl, imageReady])
+  }, [isDone, photoUrl, imageReady, stage])
 
   // Skip triggers (click, keydown, wheel, touch)
   useEffect(() => {
@@ -130,7 +141,7 @@ export default function CinematicIntro({
     img.src = photoUrl
     img.fetchPriority = 'high'
 
-    // Max wait safety timer (1.2s): skip intro if image decode hangs
+    // Max wait safety timer (1.5s): skip intro if image decode hangs
     const safetyTimer = setTimeout(() => {
       if (isMounted && !completedRef.current) {
         finish()
@@ -166,14 +177,14 @@ export default function CinematicIntro({
   useEffect(() => {
     if (!imageReady || completedRef.current) return
 
-    // Stage 0 -> Stage 1: Reveal centered portrait (0.2s)
+    // Stage 0 -> Stage 1: Reveal centered portrait (0.1s)
     const t1 = setTimeout(() => {
       if (completedRef.current) return
       setStage(1)
       callbacksRef.current.onStageChange?.(1)
     }, INTRO_CONFIG.timings.stage0Blackout * 1000)
 
-    // Stage 1 -> Stage 2: Measure target & trigger travel
+    // Stage 1 -> Stage 2: Measure target & trigger continuous glide to hero
     const t2 = setTimeout(() => {
       if (completedRef.current) return
 
@@ -202,14 +213,7 @@ export default function CinematicIntro({
       callbacksRef.current.onStageChange?.(2)
     }, (INTRO_CONFIG.timings.stage0Blackout + INTRO_CONFIG.timings.stage1FadeIn) * 1000)
 
-    // Stage 2 -> Stage 3: Overlay begins fadeout to reveal settled hero (overlap)
-    const t3 = setTimeout(() => {
-      if (completedRef.current) return
-      setStage(3)
-      callbacksRef.current.onStageChange?.(3)
-    }, (INTRO_CONFIG.timings.stage0Blackout + INTRO_CONFIG.timings.stage1FadeIn + 0.2) * 1000)
-
-    // End State: Handoff to real hero and remove overlay
+    // End State: Exactly when travel completes, hand off directly to hero portrait
     const tEnd = setTimeout(() => {
       finish()
     }, (INTRO_CONFIG.timings.stage0Blackout + INTRO_CONFIG.timings.stage1FadeIn + INTRO_CONFIG.timings.stage2Travel) * 1000)
@@ -217,13 +221,12 @@ export default function CinematicIntro({
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
-      clearTimeout(t3)
       clearTimeout(tEnd)
     }
   }, [imageReady, finish])
 
-  // If completed or no photo, never render overlay
-  if (isDone || !photoUrl || !imageReady) return null
+  // If completed, unmount
+  if (isDone) return null
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
   const introSize = isMobile
@@ -232,104 +235,100 @@ export default function CinematicIntro({
 
   return (
     <motion.div
-      initial={{ opacity: 1 }}
-      animate={stage === 3 ? { opacity: 0 } : { opacity: 1 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-paper ${
-        stage === 3 ? 'pointer-events-none' : 'pointer-events-auto'
+      initial={{ backgroundColor: '#0A0A12' }}
+      animate={
+        stage >= 2
+          ? { backgroundColor: 'rgba(10, 10, 18, 0)' }
+          : { backgroundColor: '#0A0A12' }
+      }
+      transition={{ duration: 0.65, ease: 'easeInOut' }}
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
+        stage >= 2 ? 'pointer-events-none' : 'pointer-events-auto'
       }`}
       aria-hidden="true"
     >
-      {/* Moving Portrait Element */}
-      <motion.div
-        animate={
-          stage >= 2
-            ? {
-                x: transformStyles.x,
-                y: transformStyles.y,
-                scale: transformStyles.scale,
-                opacity: 1
-              }
-            : stage === 1
-            ? {
-                x: 0,
-                y: 0,
-                scale: 1,
-                opacity: 1
-              }
-            : {
-                x: 0,
-                y: 0,
-                scale: 0.94,
-                opacity: 0
-              }
-        }
-        transition={{
-          duration:
-            stage >= 2
-              ? INTRO_CONFIG.timings.stage2Travel
-              : INTRO_CONFIG.timings.stage1FadeIn,
-          ease:
-            stage >= 2
-              ? INTRO_CONFIG.easings.travelBezier
-              : INTRO_CONFIG.easings.fadeBezier
-        }}
-        style={{
-          width: introSize,
-          height: introSize,
-          willChange: 'transform, opacity'
-        }}
-        className="relative flex items-center justify-center aspect-square"
-      >
-        {/* Soft Ambient Glow */}
-        <div
-          className="absolute -inset-8 rounded-full opacity-50 blur-3xl pointer-events-none transition-opacity duration-700"
-          style={{
-            background: INTRO_CONFIG.gradients.glow
-          }}
-        />
-
-        {/* The Animated Gradient Ring */}
+      {/* Moving Portrait Element: Starts centered and travels smoothly to hero position */}
+      {photoUrl && imageReady && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.88 }}
           animate={
-            stage >= 1
-              ? { opacity: 1, scale: 1 }
-              : { opacity: 0, scale: 0.88 }
+            stage >= 2
+              ? {
+                  x: transformStyles.x,
+                  y: transformStyles.y,
+                  scale: transformStyles.scale,
+                  opacity: 1
+                }
+              : stage === 1
+              ? {
+                  x: 0,
+                  y: 0,
+                  scale: 1,
+                  opacity: 1
+                }
+              : {
+                  x: 0,
+                  y: 0,
+                  scale: 0.92,
+                  opacity: 0
+                }
           }
           transition={{
-            duration: INTRO_CONFIG.timings.stage1FadeIn,
-            ease: INTRO_CONFIG.easings.fadeBezier
+            duration:
+              stage >= 2
+                ? INTRO_CONFIG.timings.stage2Travel
+                : INTRO_CONFIG.timings.stage1FadeIn,
+            ease:
+              stage >= 2
+                ? INTRO_CONFIG.easings.travelBezier
+                : INTRO_CONFIG.easings.fadeBezier
           }}
-          className="absolute inset-3 rounded-full p-[2px]"
           style={{
-            background: INTRO_CONFIG.gradients.ring,
-            boxShadow: '0 0 50px -10px rgba(111, 143, 255, 0.45)'
+            width: introSize,
+            height: introSize,
+            willChange: 'transform'
           }}
+          className="relative flex items-center justify-center aspect-square"
         >
-          <div className="h-full w-full rounded-full bg-paper" />
-        </motion.div>
-
-        {/* Blended Portrait Photo with Edge Dissolve */}
-        <div
-          className="relative z-10 flex h-[90%] w-[90%] items-center justify-center overflow-hidden"
-          style={{
-            WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
-            maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
-          }}
-        >
-          <img
-            src={photoUrl}
-            alt="Earnest Abraham Portrait"
-            fetchPriority="high"
-            decoding="async"
-            className="h-full w-full object-cover object-top"
+          {/* Soft Ambient Glow matching the studio portrait lighting */}
+          <div
+            className="absolute -inset-8 rounded-full opacity-50 blur-3xl pointer-events-none transition-opacity duration-700"
+            style={{
+              background: INTRO_CONFIG.gradients.glow
+            }}
           />
-        </div>
-      </motion.div>
+
+          {/* The Signature Gradient Ring (Violet -> Periwinkle Blue -> Light Blue) */}
+          <div
+            className="absolute inset-3 rounded-full p-[2px]"
+            style={{
+              background: INTRO_CONFIG.gradients.ring,
+              boxShadow: '0 0 50px -10px rgba(111, 143, 255, 0.45)'
+            }}
+          >
+            <div className="h-full w-full rounded-full bg-paper" />
+          </div>
+
+          {/* Blended Portrait Photo with Radial Edge Dissolve */}
+          <div
+            className="relative z-10 flex h-[90%] w-[90%] items-center justify-center overflow-hidden"
+            style={{
+              WebkitMaskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)',
+              maskImage: 'radial-gradient(circle at center, black 58%, transparent 72%)'
+            }}
+          >
+            <img
+              src={photoUrl}
+              alt="Earnest Abraham Portrait"
+              fetchPriority="high"
+              decoding="async"
+              className="h-full w-full object-cover object-top"
+            />
+          </div>
+        </motion.div>
+      )}
 
       {/* Skip Hint pill at bottom right */}
-      {stage >= 1 && (
+      {stage === 1 && (
         <div className="absolute bottom-6 right-6 text-[11px] font-medium tracking-wider text-mute/50 uppercase select-none pointer-events-none">
           Click or press any key to skip
         </div>

@@ -4,20 +4,18 @@
  */
 
 export const INTRO_CONFIG = {
-  // Timing values in seconds
+  // Timing values in seconds (Target: ~1.8s total cinematic sequence)
   timings: {
-    stage0Blackout: 0.2,     // Stage 0: brief initial dark setup
-    stage1FadeIn: 0.8,       // Stage 1: portrait fades in & scales at screen center
-    stage2Travel: 1.0,       // Stage 2: smooth glide to target hero slot
-    stage3HeroStagger: 0.09, // Stage 3: stagger delay between hero elements
+    stage0Blackout: 0.1,     // Stage 0: brief initial dark setup
+    stage1FadeIn: 0.75,      // Stage 1: portrait fades in & scales prominently at screen center
+    stage2Travel: 0.95,      // Stage 2: smooth continuous glide to target hero slot
     maxImageWait: 1.2,       // Max wait for image decode before skipping intro
     hardTimeout: 3.5,        // Absolute safety timeout: force-complete intro
   },
 
-  // Refined easings
+  // Refined cubic-bezier easings
   easings: {
-    // Elegant cubic-bezier for the travel motion (no cartoonish bounce)
-    travelBezier: [0.22, 1, 0.36, 1] as const,
+    travelBezier: [0.22, 1, 0.36, 1] as const, // Smooth cinematic deceleration
     fadeBezier: [0.25, 0.1, 0.25, 1] as const,
   },
 
